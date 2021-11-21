@@ -1379,6 +1379,814 @@ class Solution {
 }
 ```
 
+## \98. Validate Binary Search Tree
+
+Given the `root` of a binary tree, *determine if it is a valid binary search tree (BST)*.
+
+A **valid BST** is defined as follows:
+
+- The left subtree of a node contains only nodes with keys **less than** the node's key.
+- The right subtree of a node contains only nodes with keys **greater than** the node's key.
+- Both the left and right subtrees must also be binary search trees.
+
+ 
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2020/12/01/tree1.jpg)
+
+```
+Input: root = [2,1,3]
+Output: true
+```
+
+
+
+In a binary search tree, if we inorder traverse it, we can get a sorted list.
+
+So we can easily inorder traverse it then judge if it is a sorted list.
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        Stack<TreeNode> stack = new Stack<>();
+        ArrayList<Integer> res = new ArrayList<>();
+        
+        while(!stack.isEmpty() || root!=null){
+            if(root!=null){
+                stack.push(root);
+                root = root.left;
+            }else{
+                root = stack.pop();
+                res.add(root.val);
+                root = root.right;
+            }
+        }
+        
+        for(int i = 0;i<res.size()-1;i++){
+            if(res.get(i)>=res.get(i+1)) return false;
+        }
+        return true;
+    }
+}
+```
+
+
+
+Though add a literation at the end of the code will not add the time complexity, but it will increase the run time in fact. So we can put the judgement of if the inorder traversal result is sorted in the main while loop, then the code efficiency will increase.
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode tmp = null;
+        while(!stack.isEmpty() || root!=null){
+            if(root!=null){
+                stack.push(root);
+                root = root.left;
+            }else{
+                root = stack.pop();
+                if(tmp!=null && root.val<=tmp.val){
+                    return false;
+                }
+                tmp = root;
+                root = root.right;
+            }
+        }
+        return true;
+    }
+}
+```
+
+
+
+## \530. Minimum Absolute Difference in BST
+
+Given the `root` of a Binary Search Tree (BST), return *the minimum absolute difference between the values of any two different nodes in the tree*.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2021/02/05/bst1.jpg)
+
+```
+Input: root = [4,2,6,1,3]
+Output: 1
+```
+
+
+
+
+
+If we inorder traverse the BST, we will get a sorted array. Compare this array one by one we will get the answer.
+
+```java
+class Solution {
+    public int getMinimumDifference(TreeNode root) {
+            ArrayList<Integer> arr = new ArrayList<>();
+            getAll(root,arr);
+            // arr.sort(Comparator.naturalOrder());
+            int min = Integer.MAX_VALUE;
+            for(int i = 0;i<arr.size()-1;i++){
+                min = Math.min((arr.get(i + 1) - arr.get(i)), min);
+            }
+            return min;
+        }
+
+        public void getAll(TreeNode node, ArrayList<Integer> arr){
+            if(node == null) return;
+            getAll(node.left,arr);
+            arr.add(node.val);
+            getAll(node.right,arr);
+        }
+}
+```
+
+Also, we can compare it in the recursion, it will improve the efficiency.
+
+```java
+public class Solution {
+    int min = Integer.MAX_VALUE;
+    Integer prev = null;
+    
+    public int getMinimumDifference(TreeNode root) {
+        if (root == null) return min;
+        getMinimumDifference(root.left);
+        
+        if (prev != null) {
+            min = Math.min(min, root.val - prev);
+        }
+        prev = root.val;
+        getMinimumDifference(root.right);
+        return min;
+    } 
+}
+```
+
+
+
+
+
+## \501. Find Mode in Binary Search Tree
+
+Given the `root` of a binary search tree (BST) with duplicates, return *all the [mode(s)](https://en.wikipedia.org/wiki/Mode_(statistics)) (i.e., the most frequently occurred element) in it*.
+
+If the tree has more than one mode, return them in **any order**.
+
+Assume a BST is defined as follows:
+
+- The left subtree of a node contains only nodes with keys **less than or equal to** the node's key.
+- The right subtree of a node contains only nodes with keys **greater than or equal to** the node's key.
+- Both the left and right subtrees must also be binary search trees.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2021/03/11/mode-tree.jpg)
+
+```
+Input: root = [1,null,2,2]
+Output: [2]
+```
+
+
+
+
+
+We can just traverse the whole tree and iterate the result, then we can get how many repeated numbers and which one is the most.
+
+```java
+import java.util.*;
+class Solution {
+    public int[] findMode(TreeNode root) {
+        HashMap<Integer,Integer> map = new HashMap<>();
+        getAll(root,map);
+ 
+        int max = 0;
+        for(Integer i : map.keySet()){
+            max = Math.max(map.get(i),max);
+        }
+        ArrayList<Integer> res = new ArrayList<>();
+        for(Integer i:map.keySet()){
+            if(map.get(i) == max){
+                res.add(i);
+            }
+        }
+        int[] r = new int[res.size()];
+        for(int i = 0;i<res.size();i++){
+            r[i] = res.get(i);
+        }
+        
+        return r;
+    }
+
+    public void getAll(TreeNode node, HashMap<Integer,Integer> map){
+        if(node == null) return;
+        getAll(node.left,map);
+        map.put(node.val,map.getOrDefault(node.val,0)+1);
+        getAll(node.right,map);
+    }
+}
+```
+
+
+
+But the question said it is a BST, so if we inorder traverse it, we will get a sorted array. We didn't use this characteristic at the last solution.
+
+We can calculate it in the traverse process, BUT! we can not set the count as a parameter of recursion function. Because count does not always increase in the traversal as the traversal progresses, this results in an error in the count result.
+
+if we set the count as the parameter, the process of traverse will be like:
+
+![image](https://user-images.githubusercontent.com/54661071/142781144-68b7042e-e2fe-419c-aecd-d1317782f151.png)
+
+last count will be wrong due to the sequence of traversal
+
+
+
+So just set the count as a parameter of class.
+
+```java
+class Solution {
+    Integer prev = null;
+    int max = 0;
+    ArrayList<Integer> res = new ArrayList<>();
+    int count = 1;
+    public int[] findMode(TreeNode root) {
+        if(root == null) return new int [0];
+        
+        traverse(root);
+        int[] r = new int[res.size()];
+        for(int i = 0;i<res.size();i++){
+            r[i] = res.get(i);
+        }
+        return r;
+    }
+    
+    public void traverse(TreeNode node){
+        if(node == null) return ;
+        
+        traverse(node.left);
+        if (prev != null) {
+            if (node.val == prev)
+                count++;
+            else
+                count = 1;
+        }
+        if(max < count){
+                max = count;
+                res.clear();
+                res.add(node.val);
+        }else if(max == count){
+                res.add(node.val);
+        }
+        
+        prev = node.val;
+        traverse(node.right);
+    }
+}
+```
+
+
+
+
+
+## \236. Lowest Common Ancestor of a Binary Tree
+
+Given a binary tree, find the lowest common ancestor (LCA) of two given nodes in the tree.
+
+According to the [definition of LCA on Wikipedia](https://en.wikipedia.org/wiki/Lowest_common_ancestor): “The lowest common ancestor is defined between two nodes `p` and `q` as the lowest node in `T` that has both `p` and `q` as descendants (where we allow **a node to be a descendant of itself**).”
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2018/12/14/binarytree.png)
+
+```
+Input: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1
+Output: 3
+Explanation: The LCA of nodes 5 and 1 is 3.
+```
+
+
+
+
+
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode node, TreeNode p, TreeNode q) {
+        if(node == null || node == p || node == q){
+            return node;
+        }
+        
+        TreeNode left = lowestCommonAncestor(node.left,p,q);
+        TreeNode right = lowestCommonAncestor(node.right,p,q);
+        
+        if(left!=null && right!=null){
+            return node;
+        }
+        if(left == null) return right;
+        return left;
+    }
+}
+```
+
+
+
+
+
+
+
+## \235. Lowest Common Ancestor of a Binary Search Tree
+
+Given a binary search tree (BST), find the lowest common ancestor (LCA) of two given nodes in the BST.
+
+According to the [definition of LCA on Wikipedia](https://en.wikipedia.org/wiki/Lowest_common_ancestor): “The lowest common ancestor is defined between two nodes `p` and `q` as the lowest node in `T` that has both `p` and `q` as descendants (where we allow **a node to be a descendant of itself**).”
+
+ 
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2018/12/14/binarysearchtree_improved.png)
+
+```
+Input: root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8
+Output: 6
+Explanation: The LCA of nodes 2 and 8 is 6.
+```
+
+
+
+We need to use the characteristic of BST again, the common ancestor of BST have a property that it is the first node in the middle of the p and q.
+
+So if we meet a node is larger than both p and q, we go left; if the node is smaller than both p and q, we go right. The first node not meet the above 2 conditions, is the node what we need.
+
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if(root.val > p.val && root.val > q.val){
+            return lowestCommonAncestor(root.left, p, q);
+        }else if(root.val < p.val && root.val < q.val){
+            return lowestCommonAncestor(root.right, p, q);
+        }else{
+            return root;
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+## \701. Insert into a Binary Search Tree
+
+You are given the `root` node of a binary search tree (BST) and a `value` to insert into the tree. Return *the root node of the BST after the insertion*. It is **guaranteed** that the new value does not exist in the original BST.
+
+**Notice** that there may exist multiple valid ways for the insertion, as long as the tree remains a BST after insertion. You can return **any of them**.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2020/10/05/insertbst.jpg)
+
+```
+Input: root = [4,2,7,1,3], val = 5
+Output: [4,2,7,1,3,5]
+Explanation: Another accepted tree is:
+```
+
+
+
+This is a bad solution, cause I didn't use the characteristic of BST well. I should check current node.val whether it is larger than val rather than check current node.left == null or not.
+
+if I check current node.left == null or current node.right == null, I still need to check more things. In this question we need to judge whether we can set the val here by iterating a subtree.
+
+```java
+class Solution {
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        if(root == null) return new TreeNode(val);
+          
+        TreeNode tmp = root;
+        recur(tmp,val);
+        return root;
+    }
+    
+    public void recur(TreeNode root,int val){
+        if(root.left == null && root.right == null){
+            if(root.val<val){
+                root.right = new TreeNode(val);
+                return;
+            }else{
+                root.left = new TreeNode(val);
+                return;
+            }
+        }
+        
+        if(root.left != null && root.right==null){
+            int[] tmp1 = get(root.left);
+            if(val>root.val && tmp1[0]<val){
+                root.right = new TreeNode(val);
+                return;
+            }else{
+                recur(root.left,val);
+            }
+        }
+        if(root.right != null && root.left==null){
+            int[] tmp2 = get(root.right);
+            if(val<root.val && val<tmp2[1]){
+                root.left = new TreeNode(val);
+                return;
+            }else{
+                recur(root.right,val);
+            }
+        }
+        
+        if(root.right !=null && root.left!=null){
+            if(val>root.val){
+                recur(root.right,val);
+            }else if(val<root.val){
+                recur(root.left,val);
+            }
+        }
+    }
+    
+    public int[] get(TreeNode node){
+        int max = 0;
+        int min = Integer.MAX_VALUE;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.add(node);
+        while(!q.isEmpty()){
+            int len = q.size();
+            for(int i = 0;i<len;i++){
+                TreeNode tmp = q.poll();
+                max = Math.max(max,tmp.val);
+                min = Math.min(min,tmp.val);
+                
+                if(tmp.left!=null) q.add(tmp.left);
+                if(tmp.right!=null) q.add(tmp.right);
+            }
+        }
+        int[] res = {max,min};
+        return res;
+    }
+}
+```
+
+
+
+if we choose to check val itself first, things gonna be easy.
+
+```java
+class Solution {
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        if(root == null) return new TreeNode(val);
+          
+        TreeNode tmp = root;
+        while(true){
+            if(tmp.val>val){
+                if(tmp.left == null){
+                    tmp.left = new TreeNode(val);
+                    break;
+                }else{
+                    tmp = tmp.left;    
+                } 
+            }else{
+                if(tmp.right == null){
+                    tmp.right = new TreeNode(val);
+                    break;
+                }else{
+                    tmp = tmp.right;
+                } 
+            }
+        }
+        return root;
+    }
+}
+```
+
+
+
+
+
+## \450. Delete Node in a BST
+
+Given a root node reference of a BST and a key, delete the node with the given key in the BST. Return the root node reference (possibly updated) of the BST.
+
+Basically, the deletion can be divided into two stages:
+
+1. Search for a node to remove.
+2. If the node is found, delete the node.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2020/09/04/del_node_1.jpg)
+
+```
+Input: root = [5,3,6,2,4,null,7], key = 3
+Output: [5,4,6,2,null,null,7]
+```
+
+
+
+Find the node we need to delete first. 
+
+Set the delete node.right as the delete node, and add delete node.left to the leftest of the right.
+
+![image](https://user-images.githubusercontent.com/54661071/142781122-eed1c9ff-fe8f-4920-8779-3d3356c7de45.png)
+
+```java
+class Solution {
+    public TreeNode deleteNode(TreeNode root, int key) {
+        if(root == null) return null;
+        if(root.val == key){
+            if(root.left == null && root.right == null){
+                return null;
+            }else if(root.left == null){
+                return root.right;
+            }else if(root.right == null){
+                return root.left;
+            }else{
+                TreeNode h = root.left;
+                TreeNode tmp = root.right;
+                while(tmp.left != null){
+                    tmp = tmp.left;
+                }
+                tmp.left = h;
+                return root.right;
+            }
+        }
+
+        Queue<TreeNode> q = new LinkedList<>();
+        q.add(root);
+        TreeNode tmp = null;
+        Boolean find = false;
+
+
+        while(!q.isEmpty()){
+            if(find == true) break;
+            int len = q.size();
+            for(int i = 0;i<len;i++){
+                tmp = q.poll();
+                if((tmp.left!=null&&tmp.left.val == key) || (tmp.right!=null&&tmp.right.val == key)){
+                    find = true;
+                    break;
+                }
+                if(tmp.left!=null) q.add(tmp.left);
+                if(tmp.right!=null) q.add(tmp.right);
+
+            }
+        }
+
+        if(find == false) return root;
+
+        if(tmp.left!=null && tmp.left.val == key){
+            if(tmp.left.left == null && tmp.left.right == null){
+                tmp.left = null;
+            }else if(tmp.left.left == null){
+                tmp.left = tmp.left.right;
+            }else if(tmp.left.right == null){
+                tmp.left = tmp.left.left;
+            }else{
+                TreeNode h = tmp.left.left;
+                tmp.left = tmp.left.right;
+                TreeNode help = tmp.left;
+                while(help.left != null){
+                    help = help.left;
+                }
+                help.left = h;
+            }
+        }else{
+            if(tmp.right.left == null && tmp.right.right == null){
+                tmp.right = null;
+            }else if(tmp.right.left == null){
+                tmp.right = tmp.right.right;
+            }else if(tmp.right.right == null){
+                tmp.right = tmp.right.left;
+            }else{
+                TreeNode h = tmp.right.left;
+                tmp.right = tmp.right.right;
+                TreeNode help = tmp.right;
+                while(help.left != null){
+                    help = help.left;
+                }
+                help.left = h;
+            }
+
+        }
+
+        return root;
+    }
+}
+
+```
+
+
+
+easier way, but i am still not fully understand, just leave it here. If in the future i need to review these, i will try to handle this.
+
+```java
+class Solution {
+      public TreeNode deleteNode(TreeNode root, int key) {
+        if(root == null) return root;
+        if(root.val < key){
+            root.right = deleteNode(root.right, key);
+        } else if(root.val > key){
+            root.left = deleteNode(root.left, key);
+        } else{
+            if(root.left == null){
+                return root.right;
+            } else if(root.right == null){
+                return root.left;
+            } else{
+                TreeNode newRoot = root.right;
+                TreeNode par = null;
+                while(newRoot.left != null){
+                    par = newRoot;
+                    newRoot = newRoot.left;
+                }
+                if(par == null){
+                    newRoot.left = root.left;
+                    return newRoot;
+                }
+                par.left = newRoot.right;
+                newRoot.left = root.left;
+                newRoot.right = root.right;
+                return newRoot;
+            }
+        }
+        return root;
+    }
+}
+```
+
+
+
+## \669. Trim a Binary Search Tree
+
+Given the `root` of a binary search tree and the lowest and highest boundaries as `low` and `high`, trim the tree so that all its elements lies in `[low, high]`. Trimming the tree should **not** change the relative structure of the elements that will remain in the tree (i.e., any node's descendant should remain a descendant). It can be proven that there is a **unique answer**.
+
+Return *the root of the trimmed binary search tree*. Note that the root may change depending on the given bounds.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2020/09/09/trim1.jpg)
+
+```
+Input: root = [1,0,2], low = 1, high = 2
+Output: [1,null,2]
+```
+
+
+
+A concise approach of recursion, but i don't think i can give this solution when i face a interview.
+
+```java
+class Solution {
+    public TreeNode trimBST(TreeNode root, int low, int high) {
+        if(root == null) return null;
+        if(root.val<low) return trimBST(root.right,low,high);
+        if(root.val>high) return trimBST(root.left,low,high);
+        
+        root.left = trimBST(root.left,low,high);
+        root.right = trimBST(root.right,low,high);
+        
+        return root;
+    }
+}
+```
+
+
+
+A iterative approach, there are 3 steps.
+
+1. find the right root node.
+2. trim the root's left subtree.
+3. trim the root's right subtree.
+
+Note that every step we all need to use the characteristic of BST. 
+
+```java
+class Solution {
+    public TreeNode trimBST(TreeNode root, int low, int high) {
+      //find the right root node.
+        TreeNode tmp = root;
+        while(tmp!=null && (tmp.val<low || tmp.val>high)){
+            if(tmp.val<low) tmp = tmp.right;
+            if(tmp.val>high) tmp = tmp.left;
+        }
+        if(tmp == null) return tmp;
+        
+        TreeNode res = tmp;
+      //trim the root's left subtree.
+        while(tmp!=null){
+            while(tmp.left!=null && tmp.left.val<low){
+                tmp.left = tmp.left.right;
+            }
+            tmp = tmp.left;
+        }
+        
+      //trim the root's right subtree.
+        tmp = res;
+        while(tmp!=null){
+            while(tmp.right!=null && tmp.right.val>high){
+                tmp.right = tmp.right.left;
+            }
+            tmp = tmp.right;
+        }
+        return res;
+    }
+}
+```
+
+
+
+
+
+## \108. Convert Sorted Array to Binary Search Tree
+
+Given an integer array `nums` where the elements are sorted in **ascending order**, convert *it to a **height-balanced** binary search tree*.
+
+A **height-balanced** binary tree is a binary tree in which the depth of the two subtrees of every node never differs by more than one.
+
+**Example 1:**
+
+![img](https://assets.leetcode.com/uploads/2021/02/18/btree1.jpg)
+
+```
+Input: nums = [-10,-3,0,5,9]
+Output: [0,-3,9,-10,null,5]
+```
+
+
+
+```java
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        if(nums.length == 0) return null;
+        
+        int middle = nums.length/2;
+        TreeNode root = new TreeNode(nums[middle]);
+        root.left = sortedArrayToBST(Arrays.copyOfRange(nums, 0, middle));
+        root.right = sortedArrayToBST(Arrays.copyOfRange(nums, middle+1, nums.length));
+        
+        return root;
+    }
+}
+```
+
+
+
+
+
+a intuitive idea is first find the sum of all nodes, then iterate whole tree again, use the sum-(the sum of all nodes less than current)
+
+```java
+class Solution {
+    int sum = 0;
+    public TreeNode convertBST(TreeNode root) {
+        HashMap<Integer,Integer> map = new HashMap<>();
+        inOrder(root, map);
+        inOrder_res(root,map);
+        return root;
+    }
+
+    public void inOrder(TreeNode node,HashMap<Integer,Integer> map){
+        if(node == null) return;
+        inOrder(node.left,map);
+        map.put(node.val,sum);
+        sum+=node.val;
+        inOrder(node.right,map);
+    }
+
+    public void inOrder_res(TreeNode node,HashMap<Integer,Integer> map){
+        if(node == null) return;
+        inOrder_res(node.left,map);
+        node.val = sum-map.get(node.val);
+        inOrder_res(node.right,map);
+    }
+}
+```
+
+
+
+Also, we do not use the characteristic of BST. In BST, if we change the sequence of inorder traverse, we will get a sorted array desc. Just sum the nodes we already traverse, update the current node, we will get the answer.
+
+```java
+class Solution {
+    int sum = 0;
+    public TreeNode convertBST(TreeNode root) {
+        inOrder(root);
+        return root;
+    }
+
+    public void inOrder(TreeNode node){
+        if(node == null) return;
+        inOrder(node.right);
+        sum+=node.val;
+        node.val=sum;
+        inOrder(node.left);
+    }
+}
+```
+
 
 
 
