@@ -354,5 +354,65 @@ class Solution {
 }
 ```
 
+## \2086. Minimum Number of Buckets Required to Collect Rainwater from Houses
+
+You are given a **0-index****ed** string `street`. Each character in `street` is either `'H'` representing a house or `'.'` representing an empty space.
+
+You can place buckets on the **empty spaces** to collect rainwater that falls from the adjacent houses. The rainwater from a house at index `i` is collected if a bucket is placed at index `i - 1` **and/or** index `i + 1`. A single bucket, if placed adjacent to two houses, can collect the rainwater from **both** houses.
+
+Return *the **minimum** number of buckets needed so that for **every** house, there is **at least** one bucket collecting rainwater from it, or* `-1` *if it is impossible.*
+
+**Example 1:**
+
+```
+Input: street = "H..H"
+Output: 2
+Explanation:
+We can put buckets at index 1 and index 2.
+"H..H" -> "HBBH" ('B' denotes where a bucket is placed).
+The house at index 0 has a bucket to its right, and the house at index 3 has a bucket to its left.
+Thus, for every house, there is at least one bucket collecting rainwater from it.
+```
+
+
+
+The key of this problem is we need splite the question to 2 parts.
+
+1. check if we can collect water from every houses.
+2. place buckets.
+
+the 2nd part we need to place the bucket behind the house, this could make judgement after easier
+
+
+
+```java
+class Solution_W3 {
+    public int minimumBuckets(String street) {
+        char[] c = street.toCharArray();
+        for(int i = 0;i<c.length;i++){
+            if(c[i] == '.') continue;
+            if(i-1>=0 && c[i] == 'H' && c[i-1] == '.') continue;
+            if(i+1<c.length && c[i] == 'H' && c[i+1] == '.') continue;
+            return -1;
+        }
+
+        int res = 0;
+        for(int j = 0;j<c.length;j++){
+            if(j-1>=0 && c[j] == 'H' && c[j-1] == 'a') continue;
+            if(j+1<c.length && c[j] == 'H' && c[j+1] == '.'){
+                c[j+1] = 'a';
+                res++;
+            }else if(j-1>=0 && c[j-1] == '.' && c[j] == 'H') {
+                c[j-1] = 'a';
+                res++;
+            }
+        }
+        return res;
+    }
+}
+```
+
+
+
 
 
